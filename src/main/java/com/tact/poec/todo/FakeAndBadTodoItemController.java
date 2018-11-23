@@ -1,10 +1,10 @@
 
 package com.tact.poec.todo;
 
-import java.util.Collections;
 import java.util.List;
 
 import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -48,13 +48,7 @@ public class FakeAndBadTodoItemController {
     }
 
     @PostMapping("todo")
-    public Object create(@RequestBody final TodoItemUpdateDTO dto, final HttpServletResponse response) {
-        // Check model.
-        if (dto.getLabel() == null || "".equals(dto.getLabel().trim())) {
-            response.setStatus(HttpStatus.BAD_REQUEST.value());
-            return Collections.singletonMap("error", "missing label");
-        }
-
+    public Object create(@Valid @RequestBody final TodoItemUpdateDTO dto, final HttpServletResponse response) {
         final TodoItem item = new TodoItem(dto.getLabel());
 
         this.repository.save(item);

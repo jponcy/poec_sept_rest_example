@@ -1,9 +1,13 @@
 
 package com.tact.poec.todo;
 
+import java.util.Collections;
 import java.util.List;
 
+import javax.servlet.http.HttpServletResponse;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -44,10 +48,18 @@ public class FakeAndBadTodoItemController {
     }
 
     @PostMapping("todo")
-    public TodoItem create(@RequestParam final String label) {
-        final TodoItem item = new TodoItem(label);
+    public Object create(@RequestBody final TodoItemUpdateDTO dto, final HttpServletResponse response) {
+        // Check model.
+        if (dto.getLabel() == null || "".equals(dto.getLabel().trim())) {
+            response.setStatus(HttpStatus.BAD_REQUEST.value());
+            return Collections.singletonMap("error", "missing label");
+        }
+
+        final TodoItem item = new TodoItem(dto.getLabel());
 
         this.repository.save(item);
+
+        response.setStatus(HttpStatus.CREATED.value());
 
         return item;
     }
@@ -55,10 +67,12 @@ public class FakeAndBadTodoItemController {
     // @DeleteMapping // No, due to not real deletion, except if we want declare is delete even if it is not.
     // Not RestFull, but common tips to add some action (for performance).
     @PutMapping("todo/{id:^\\d+$}/delete")
-    public void delete(@PathVariable final long id) {
+    public void delete(@PathVariable final long id, final HttpServletResponse response) {
         final TodoItem item = this.repository.findOne(id);
 
         item.setDeleted(true);
+
+        response.setStatus(HttpStatus.NO_CONTENT.value());
 
         this.repository.save(item);
     }
